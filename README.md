@@ -18,7 +18,7 @@ Pauses or stops OctoPrint if the 3D printer filament jams or runs out
 
 3) Optional: 3D print the [mini metro enclosure](http://www.thingiverse.com/thing:936519)
 
-4) Wire up the Metro Mini 328 to the encoder:
+4) Wire up the Metro Mini 328 to the encoder, optionally soldering on the header blocks first:
 
 4.1) Encoder red (power) - 5V
 
@@ -27,6 +27,8 @@ Pauses or stops OctoPrint if the 3D printer filament jams or runs out
 4.3) Encoder green (output 1) - digital pin 3
 
 4.4) Encoder white (output 2) - digital pin 2
+
+![](https://github.com/rllynch/filament_watch/blob/master/images/metro_mini_328_wiring.jpg)
 
 5) Connect the Metro Mini by USB to the computer running OctoPrint. Attach the wheel to the encoder and place it in the base. Feed the filament through the base.
 
