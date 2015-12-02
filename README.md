@@ -59,8 +59,8 @@ cd filament_watch
 python setup.py install
 ```
 
-8) Go to Settings in OctoPrint and in the API page, note the API key, enabling it if necessary. Launch filament_tracker with --apikey argument, supplying the API key.
+10) Go to Settings in OctoPrint and in the API page, note the API key, enabling it if necessary. Launch filament_watch with --apikey argument, supplying the API key.
 
 ```
-filament_tracker --apikey 11111111111111111111111111111111
+filament_watch --apikey 11111111111111111111111111111111
 ```
