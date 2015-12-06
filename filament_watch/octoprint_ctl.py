@@ -135,7 +135,7 @@ class OctoPrintAccess(object): # pylint: disable=too-many-instance-attributes
             time_left -= hours_left * 60 * 60
             min_left = int(time_left / 60)
             time_left -= min_left * 60
-            if int(job_json['progress']['filepos']) != 0:
+            if job_json['progress']['filepos'] and int(job_json['progress']['filepos']) != 0:
                 return 'Printing %s - %.0f%% - %02d:%02d:%02d left' % (
                     job_json['job']['file']['name'],
                     float(job_json['progress']['completion']),

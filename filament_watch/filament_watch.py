@@ -66,7 +66,7 @@ def get_config():
         'octoprinthost': '127.0.0.1',
         'csvlog': 'log.csv',
         'alarmchangethreshold': 0.1,
-        'alarmminprinttime': 90,
+        'alarmminprinttime': 120,
         'alarmaction': 'cancel',
         'encoderscalingfactor': 0.041,
         'windowduration': 120,
