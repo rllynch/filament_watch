@@ -43,6 +43,7 @@ class ArduinoInterface(object):
         self.recent_length = recent_length
         self.recent_pos = None
         self.offset = 0
+        self.logger = logging.getLogger(__name__)
 
     def get_pos_change(self):
         '''Get current absolute position and position change'''
@@ -56,7 +57,7 @@ class ArduinoInterface(object):
                 try:
                     pos = int(lines[-1]) + self.offset
                 except ValueError:
-                    logging.error('Invalid serial data: "%s"', lines[-1])
+                    self.logger.error('Invalid serial data: "%s"', lines[-1])
 
         if pos != None:
             if self.recent_pos is None:
@@ -66,16 +67,16 @@ class ArduinoInterface(object):
             if change > 32768:
                 self.offset -= 65536
                 pos -= 65536
-                logging.debug('New offset is %d', self.offset)
+                self.logger.debug('New offset is %d', self.offset)
             if change < -32768:
                 self.offset += 65536
                 pos += 65536
-                logging.debug('New offset is %d', self.offset)
+                self.logger.debug('New offset is %d', self.offset)
 
             self.recent_pos.append(pos)
             self.recent_pos.pop(0)
 
             change = pos - self.recent_pos[0]
-            change = abs(change)
+            change = abs(change) / len(self.recent_pos)
             return [pos, change]
         return [None, None]

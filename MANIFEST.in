@@ -1,3 +1,4 @@
 include ez_setup.py
 include LICENSE
+recursive-include filament_watch/static_www *
 

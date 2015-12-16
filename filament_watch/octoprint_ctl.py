@@ -48,11 +48,12 @@ class OctoPrintAccess(object): # pylint: disable=too-many-instance-attributes
         self.cache_resolution = None
         self.recent_gcode_pos = None
         self.recent_length = recent_length
+        self.logger = logging.getLogger(__name__)
 
     def cache_clear(self):
         '''Clear gcode cache'''
         if self.cached_filename != None:
-            logging.debug("Clearing cache of %s", self.cached_filename)
+            self.logger.debug("Clearing cache of %s", self.cached_filename)
             self.cached_filename = None
             self.cached_gcode = None
             self.cached_filament_usage = None
@@ -62,7 +63,7 @@ class OctoPrintAccess(object): # pylint: disable=too-many-instance-attributes
         '''Cache specified file from OctoPrint server'''
         if filename == self.cached_filename and self.cached_gcode:
             return
-        logging.debug("Caching %s", filename)
+        self.logger.debug("Caching %s", filename)
         file_req = requests.get('http://%s/api/files/local/%s?apikey=%s' % (self.hostname, filename, self.api_key))
         file_json = file_req.json()
         dl_url = file_json['refs']['download']
@@ -120,7 +121,10 @@ class OctoPrintAccess(object): # pylint: disable=too-many-instance-attributes
 
         for dev in ['bed', 'tool0']:
             temp_actual = float(printer_json['temperature'][dev]['actual'])
-            temp_target = float(printer_json['temperature'][dev]['target'])
+            if printer_json['temperature'][dev]['target']:
+                temp_target = float(printer_json['temperature'][dev]['target'])
+            else:
+                temp_target = 0.0
 
             if (temp_target - temp_actual) > temp_threshold and temp_target > 0:
                 return 'Heating %s' % (friendly_temp_names[dev])
@@ -177,13 +181,13 @@ class OctoPrintAccess(object): # pylint: disable=too-many-instance-attributes
             if printer_req.status_code == 200:
                 printer_json = printer_req.json()
             else:
-                logging.debug('Status code %d querying /api/printer', printer_req.status_code)
+                self.logger.debug('Status code %d querying /api/printer', printer_req.status_code)
                 printer_json = None
         except requests.exceptions.ConnectionError:
             stat['summary'] = 'OctoPrint down'
             return stat
         except ValueError:
-            logging.exception('ValueError processing printer status')
+            self.logger.exception('ValueError processing printer status')
             stat['summary'] = 'ValueError processing printer status'
             return stat
 
@@ -199,7 +203,7 @@ class OctoPrintAccess(object): # pylint: disable=too-many-instance-attributes
             job_req = requests.get('http://%s/api/job?apikey=%s' % (self.hostname, self.api_key))
             job_json = job_req.json()
         except (requests.exceptions.ConnectionError, ValueError):
-            logging.exception('Connection error')
+            self.logger.exception('Connection error')
             stat['summary'] = 'Connection error'
             return stat
 
@@ -242,13 +246,13 @@ class OctoPrintAccess(object): # pylint: disable=too-many-instance-attributes
 
                     self.recent_gcode_pos.append(stat['gcode_filament_pos'])
                     self.recent_gcode_pos.pop(0)
-                    stat['gcode_change'] = self.recent_gcode_pos[-1] - self.recent_gcode_pos[0]
+                    stat['gcode_change'] = (self.recent_gcode_pos[-1] - self.recent_gcode_pos[0]) / len(self.recent_gcode_pos)
 
         except KeyError:
-            logging.exception('Key error processing status')
+            self.logger.exception('Key error processing status')
             stat['summary'] = 'Key error processing status'
         except TypeError:
-            logging.exception('Type error processing status')
+            self.logger.exception('Type error processing status')
             stat['summary'] = 'Type error processing status'
         if stat['gcode_filament_pos'] <= 0:
             stat['printing'] = False
@@ -262,7 +266,7 @@ class OctoPrintAccess(object): # pylint: disable=too-many-instance-attributes
         headers = {'Content-Type': 'application/json', 'X-Api-Key': self.api_key}
         req = requests.post(url, data=json.dumps(payload), headers=headers)
         if req.status_code != 204:
-            logging.error('Received status code %d trying to issue job command "%s": %s', req.status_code, cmd, req.text)
+            self.logger.error('Received status code %d trying to issue job command "%s": %s', req.status_code, cmd, req.text)
 
     def jog(self, jog_x, jog_y, jog_z):
         """Job the print head"""
@@ -271,7 +275,7 @@ class OctoPrintAccess(object): # pylint: disable=too-many-instance-attributes
         headers = {'Content-Type': 'application/json', 'X-Api-Key': self.api_key}
         req = requests.post(url, data=json.dumps(payload), headers=headers)
         if req.status_code != 204:
-            logging.error('Received status code %d trying to jog head: %s', req.status_code, req.text)
+            self.logger.error('Received status code %d trying to jog head: %s', req.status_code, req.text)
 
     def home_head_xy(self):
         """Home the print head in xy plane"""
@@ -280,4 +284,4 @@ class OctoPrintAccess(object): # pylint: disable=too-many-instance-attributes
         headers = {'Content-Type': 'application/json', 'X-Api-Key': self.api_key}
         req = requests.post(url, data=json.dumps(payload), headers=headers)
         if req.status_code != 204:
-            logging.error('Received status code %d trying to home head: %s', req.status_code, req.text)
+            self.logger.error('Received status code %d trying to home head: %s', req.status_code, req.text)
