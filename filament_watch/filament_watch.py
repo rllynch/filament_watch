@@ -38,6 +38,7 @@ import time
 import logging
 import argparse
 import os
+import socket
 import yaml
 
 from .octoprint_ctl import OctoPrintAccess
@@ -71,7 +72,7 @@ def get_config():
         'alarmchangethreshold': 0.1,
         'alarmminprinttime': 120,
         'alarmaction': 'cancel',
-        'encoderscalingfactor': 0.041,
+        'encoderscalingfactor': 0.040,
         'windowduration': 120,
         'httpport': None,
     }
@@ -108,6 +109,21 @@ def log_msg(logger, web_server, msg):
     if web_server:
         web_server.log(msg)
 
+def get_this_host_ip():
+    '''Returns the IP address of this computer used to connect to the internet
+    (i.e. not the loopback interface's IP)'''
+    # Adapted from Alexander at http://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib/1267524#1267524
+    ghbn_ips = socket.gethostbyname_ex(socket.gethostname())[2]
+    ip_list = [ip for ip in ghbn_ips if not ip.startswith("127.")]
+    if len(ip_list) > 0:
+        return ip_list[0]
+    # Find the IP used to connect to the internet
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.connect(('8.8.8.8', 80))
+    gsn_ip = sock.getsockname()[0]
+    sock.close()
+    return gsn_ip
+
 def main(): # pylint: disable=too-many-locals
     """Main processing loop"""
 
@@ -131,6 +147,7 @@ def main(): # pylint: disable=too-many-locals
     octoprint = OctoPrintAccess(config['octoprinthost'], config['apikey'], recent_length)
     if config['httpport']:
         web_server = WebServer(config['httpport'], config['debug'])
+        logger.info('Status URL: http://%s:%d/', get_this_host_ip(), config['httpport'])
         web_server.start()
     else:
         web_server = None
