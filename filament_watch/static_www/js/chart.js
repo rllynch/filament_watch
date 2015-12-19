@@ -34,10 +34,12 @@ function requestData() {
                 $('#summary').html(state.summary);
                 $('#filament_pos').html(state.filament_pos);
                 $('#file_pos').html(state.file_pos);
-                $('#bed_target').html(state.bed_target);
-                $('#bed_actual').html(state.bed_actual);
-                $('#tool0_target').html(state.tool0_target);
-                $('#tool0_actual').html(state.tool0_actual);
+                //$('#bed_target').html(state.bed_target);
+                //$('#bed_actual').html(state.bed_actual);
+                $('#bed').html(state.bed_actual + ' / ' + state.bed_target);
+                //$('#tool0_target').html(state.tool0_target);
+                //$('#tool0_actual').html(state.tool0_actual);
+                $('#tool0').html(state.tool0_actual + ' / ' + state.tool0_target);
                 $('#log_msgs').html(state.log_msgs);
                 console.log(state);
             } else {
@@ -85,11 +87,8 @@ $(document).ready(function () {
         },
         yAxis: {
             min: 0,
-            minPadding: 0.2,
-            maxPadding: 0.2,
             title: {
                 text: 'mm/sec',
-                margin: 80
             }
         },
         series: [
