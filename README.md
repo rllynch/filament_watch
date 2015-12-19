@@ -61,8 +61,12 @@ cd filament_watch
 python setup.py install
 ```
 
-10) Go to Settings in OctoPrint and in the API page, note the API key, enabling it if necessary. Launch filament_watch with --apikey argument, supplying the API key.
+10) Go to Settings in OctoPrint and in the API page, note the API key, enabling it if necessary. Launch filament_watch with --apikey argument, supplying the API key, and an open TCP port for the web interface.
 
 ```
-filament_watch --apikey 11111111111111111111111111111111
+filament_watch --apikey 11111111111111111111111111111111 --httpport 8081
 ```
+
+11) Point a web browser at the selected port and start a print. The graph will show the actual movement of the filament graphed against the movement specified in the gcode (averaged over two minutes). If the two lines approximately track each other, then filament_watch is working correctly.
+
+![](https://github.com/rllynch/filament_watch/blob/master/images/filament_watch_status.png)
