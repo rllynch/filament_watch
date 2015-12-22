@@ -62,6 +62,12 @@ function requestData() {
 
 $(document).ready(function () {
     "use strict";
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    })
+
     chg_chart = new Highcharts.Chart({
         chart: {
             renderTo: 'chg_chart',
