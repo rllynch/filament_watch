@@ -130,6 +130,7 @@ def main(): # pylint: disable=too-many-locals
     config = get_config()
 
     recent_length = config['windowduration']
+    web_history_length = 120
     idle_logging_interval = 60
     log_level = logging.INFO
     if config['debug']:
@@ -170,6 +171,8 @@ def main(): # pylint: disable=too-many-locals
 
         printing_count = 0
         skipped_log_count = idle_logging_interval
+        web_gcode_history = []
+        web_actual_history = []
 
         while True:
             pos, meas_change_raw = filament_watch.get_pos_change()
@@ -210,6 +213,9 @@ def main(): # pylint: disable=too-many-locals
                     web_server.update({
                         'gcode': [chart_time, stat['gcode_change']],
                         'actual': [chart_time, meas_change_norm],
+                        'gcode_history': web_gcode_history,
+                        'actual_history': web_actual_history,
+                        'history_length': web_history_length,
                         'alarm': alarm,
                         'printing': stat['printing'],
                         'valid': valid,
@@ -222,6 +228,12 @@ def main(): # pylint: disable=too-many-locals
                         'tool0_target': stat['tool0_target'],
                         'tool0_actual': stat['tool0_actual'],
                     })
+                # Make the history mirror the javascript state before it does addPoint
+                web_gcode_history.append([chart_time, stat['gcode_change']])
+                web_actual_history.append([chart_time, meas_change_norm])
+                if len(web_gcode_history) > web_history_length:
+                    web_gcode_history.pop(0)
+                    web_actual_history.pop(0)
 
                 if stat['printing'] or alarm or meas_change_raw != 0 or skipped_log_count >= (idle_logging_interval - 1):
                     fields = [

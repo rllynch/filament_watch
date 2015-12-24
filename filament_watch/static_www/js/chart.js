@@ -13,7 +13,20 @@ function requestData() {
         url: 'gen_change',
         success: function (state) {
             if (state.hasOwnProperty('printing')) {
-                var shift = chg_chart.series[0].data.length > 120;
+                // If the server has more history, or the first point of the
+                // client history is more than 10 sec off from the server
+                // history (e.g. tablet suspended then woke up with web page)
+                // then reload the data
+                if (chg_chart.series[0].data.length < state.gcode_history.length
+                        || chg_chart.series[1].data.length < state.actual_history.length
+                        || Math.abs(chg_chart.series[0].data[0].x - state.gcode_history[0][0]) > 10 * 1000
+                        || Math.abs(chg_chart.series[1].data[0].x - state.actual_history[0][0]) > 10 * 1000) {
+                    console.log('Reloading data from server');
+                    chg_chart.series[0].setData(state.gcode_history);
+                    chg_chart.series[1].setData(state.actual_history);
+                }
+
+                var shift = chg_chart.series[0].data.length >= state.history_length;
 
                 // append point, shifting if more than 300 points
                 chg_chart.series[0].addPoint(state.gcode, true, shift);
@@ -66,7 +79,7 @@ $(document).ready(function () {
         global: {
             useUTC: false
         }
-    })
+    });
 
     chg_chart = new Highcharts.Chart({
         chart: {
@@ -94,7 +107,7 @@ $(document).ready(function () {
         yAxis: {
             min: 0,
             title: {
-                text: 'mm/sec',
+                text: 'mm/sec'
             }
         },
         series: [
